@@ -458,12 +458,15 @@ function onSearch() {
     document.querySelectorAll('.letter-bar .l').forEach(l => l.classList.remove('active'));
     const matches = [];
     const sq = stripGreekAccents(q);
+    const searchRe = isGr
+        ? new RegExp(sq.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        : new RegExp('\\b' + sq.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
     for (let i = 0; i < entries.length; i++) {
         const e = entries[i];
         const fields = [e.g, ...e.e];
         for (const s of fields) {
             const testStr = stripGreekAccents(s.toLowerCase());
-            if (testStr.includes(sq)) {
+            if (searchRe.test(testStr)) {
                 matches.push({ idx: i, entry: e });
                 break;
             }
