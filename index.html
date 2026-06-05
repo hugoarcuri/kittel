@@ -263,6 +263,17 @@ function applyGreekTranslit(text) {
 function stripGreekAccents(s) {
     return s.normalize('NFD').replace(/[\u0300-\u036F]/g, '');
 }
+function cleanEntryGreek(g, t) {
+    let h = g.replace(/\[.*?\]/g,'').replace(/\[[^\]]*$/g,'').replace(/\s*,\s*/g,', ').replace(/, ,/g,',').replace(/^,|,$/g,'').trim();
+    if (g.includes('[') || h.split(',').filter(Boolean).length <= 1) {
+        const extra = (t||'').replace(/\[.*?\]/g,' ').replace(/\]/g,'').trim().match(/[\u0370-\u03FF\u1F00-\u1FFF ,]+/);
+        if (extra) {
+            const tw = extra[0].split(',').map(s=>s.trim()).filter(Boolean).slice(0,3);
+            if (tw.length) h = tw.join(', ');
+        }
+    }
+    return h;
+}
 
 const searchEl = document.getElementById('search');
 const sidebarEl = document.getElementById('sidebar');
@@ -471,7 +482,7 @@ function renderSidebar(matches) {
         const active = m.idx === currentMatch ? ' active' : '';
         const preview = e.t.slice(0, 150).replace(/\s+/g, ' ') + '…';
         html += `<div class="match${active}" data-idx="${m.idx}">
-            <div class="griego">${escHtml(e.g.replace(/\[.*?\]/g,'').replace(/\[[^\]]*$/g,'').replace(/\s*,\s*/g,', ').replace(/, ,/g,',').replace(/^,|,$/g,'').trim())}</div>
+            <div class="griego">${escHtml(cleanEntryGreek(e.g, e.t))}</div>
             <div class="espanol">${e.e.map(s => escHtml(s)).join(', ')}</div>
             <div class="preview">${((e.g + ' ' + e.t).replace(/\[.*?\]/g,' ').replace(/\[[^\]]*$/g,'').replace(/, ,/g, ', ').replace(/\s+/g, ' ').trim()).slice(0, 150)}…</div>
         </div>`;
@@ -501,7 +512,7 @@ function showEntry(idx) {
     entryViewEl.innerHTML = `
         <div class="entry-card">
             <div class="entry-header">
-            <div class="griego">${escHtml(e.g.replace(/\[.*?\]/g,'').replace(/\[[^\]]*$/g,'').replace(/\s*,\s*/g,', ').replace(/, ,/g,',').replace(/^,|,$/g,'').trim())}</div>
+            <div class="griego">${escHtml(cleanEntryGreek(e.g, e.t))}</div>
                 <div class="espanol">${e.e.map(s => '<span class="badge">' + escHtml(s) + '</span>').join('')}</div>
                 <div class="header-meta">
                     <span class="page-badge">Kittel pág. ${e.p || '—'}</span>
