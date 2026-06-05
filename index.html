@@ -317,9 +317,9 @@ function renderSidebar(matches) {
         const active = m.idx === currentMatch ? ' active' : '';
         const preview = e.t.slice(0, 150).replace(/\s+/g, ' ') + '…';
         html += `<div class="match${active}" data-idx="${m.idx}">
-            <div class="griego">${escHtml(e.g)}</div>
+            <div class="griego">${escHtml(e.g.replace(/\[.*$/,'').split(',')[0].trim())}</div>
             <div class="espanol">${e.e.map(s => escHtml(s)).join(', ')}</div>
-            <div class="preview">${escHtml(preview)}</div>
+            <div class="preview">${(e.g + ' ' + e.t).replace(/\[[^\]]*$/, '').replace(/, ,/g, ', ').replace(/\s+/g, ' ').slice(0, 150)}…</div>
         </div>`;
     }
     sidebarResults.innerHTML = html;
@@ -337,7 +337,8 @@ function showEntry(idx) {
     sidebarResults.querySelectorAll('.match').forEach(el => {
         el.classList.toggle('active', parseInt(el.dataset.idx) === idx);
     });
-    let text = e.t
+    const fullEntry = (e.g + ' ' + e.t).replace(/\[[^\]]*$/, '').replace(/, ,/g, ',').replace(/,\s*$/, '').replace(/\s+,/g, ',').trim();
+    let text = fullEntry
         .replace(/\s+(A\.|B\.|C\.|D\.|E\.|F\.|G\.)\s/g, '<br><br><span class="section-title">$1</span> ')
         .replace(/\s+(\d+\.)\s/g, '<br><br><span class="section-title">$1</span> ');
     text = text.replace(/([\u0370-\u03FF\u1F00-\u1FFF]{2,}(?:\s*[\u0370-\u03FF\u1F00-\u1FFF]+)*)/g, '<span class="greek-word">$1</span>');
@@ -361,7 +362,7 @@ function showEntry(idx) {
     entryViewEl.scrollTop = 0;
     entryViewEl.querySelector('.fav-btn')?.addEventListener('click', () => toggleFav(idx));
     entryViewEl.querySelector('.copy-btn')?.addEventListener('click', () => {
-        const plain = e.g + '\n' + e.e.join(', ') + '\n\n' + e.t;
+        const plain = fullEntry;
         navigator.clipboard.writeText(plain).then(() => {
             const btn = entryViewEl.querySelector('.copy-btn');
             btn.textContent = '✓';
