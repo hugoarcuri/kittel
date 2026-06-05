@@ -146,11 +146,15 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
     #entry-view .entry-card { padding: 24px 24px; }
 }
 @media (max-width: 700px) {
-    main { flex-direction: column; }
-    #sidebar { width: 100%; min-width: unset; height: 55vh; min-height: 0; border-right: none; border-bottom: 1px solid var(--sidebar-border); box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow-y: auto; }
+    body { min-height: 100vh; overflow-y: auto; }
+    main { flex-direction: column; overflow: visible; }
+    #sidebar { width: 100%; min-width: unset; height: auto; max-height: 3000px; border-right: none; border-bottom: 1px solid var(--sidebar-border); box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; transition: max-height 0.35s ease, opacity 0.35s ease, padding 0.35s ease, border 0.35s ease, box-shadow 0.35s ease; }
+    #sidebar.sidebar-hidden { max-height: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; }
     #sidebar .font-bar { padding: 6px 12px; flex-shrink: 0; }
-    #sidebar .sidebar-results { flex: 0 1 auto; overflow-y: visible; }
+    #sidebar .sidebar-results { flex: 0 1 auto; overflow: visible; }
     #sidebar .recent-section, #sidebar .letter-bar { flex-shrink: 0; }
+    #sidebarResize { display: none; }
+    #content { flex: 0 1 auto; overflow: visible; }
     #entry-view { padding: 16px; }
     #entry-view .entry-card { padding: 18px; }
     #entry-view .entry-header .griego { font-size: 22px; }
@@ -166,7 +170,6 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
     #verseRef { font-size: 12px; flex: 0 1 auto; }
     #termCount { font-size: 11px; }
     #darkToggle { font-size: 13px; padding: 4px 9px; }
-    #sidebar { height: 50vh; }
     #sidebar .match { padding: 10px 12px; }
     #sidebar .match .griego { font-size: 15px; }
     #sidebar .match .espanol { font-size: 13px; }
@@ -340,6 +343,9 @@ function loadData() {
             const totalTerms = entries.reduce((a, e) => a + e.e.length, 0);
             termCountEl.textContent = `${totalTerms.toLocaleString()} términos cargados`;
             let grRaw = '';
+            searchEl.addEventListener('focus', () => {
+                document.getElementById('sidebar').classList.remove('sidebar-hidden');
+            });
             searchEl.addEventListener('beforeinput', (e) => {
                 if (searchLang !== 'GR') return;
                 if (e.inputType === 'insertText' && e.data) {
@@ -361,6 +367,7 @@ function loadData() {
             });
             searchEl.addEventListener('input', () => {
                 if (searchLang === 'GR' && grRaw) return;
+                document.getElementById('sidebar').classList.remove('sidebar-hidden');
                 onSearch();
             });
             renderRecent();
@@ -384,6 +391,7 @@ function loadData() {
                     searchEl.placeholder = searchLang === 'ES' ? 'Escribí una palabra en español…' : 'Escribí una palabra en griego…';
                     grRaw = '';
                     searchEl.value = '';
+                    document.getElementById('sidebar').classList.remove('sidebar-hidden');
                     searchEl.focus();
                     onSearch();
                 });
@@ -414,7 +422,7 @@ function loadData() {
         })
         .catch(() => {
             termCountEl.textContent = 'Error al cargar datos';
-        });
+    });
 }
 
 function showWelcome() {
@@ -428,6 +436,7 @@ function showWelcome() {
         el.addEventListener('click', () => {
             searchEl.value = el.dataset.w;
             grRaw = '';
+            document.getElementById('sidebar').classList.remove('sidebar-hidden');
             onSearch();
         });
     });
@@ -492,6 +501,7 @@ function renderSidebar(matches) {
     sidebarResults.querySelectorAll('.match').forEach(el => {
         el.addEventListener('click', () => {
             const idx = parseInt(el.dataset.idx);
+            if (window.innerWidth <= 700) document.getElementById('sidebar').classList.add('sidebar-hidden');
             showEntry(idx);
         });
     });
