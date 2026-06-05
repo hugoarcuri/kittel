@@ -147,9 +147,10 @@ main { display: flex; flex: 1; overflow: hidden; }
 }
 @media (max-width: 700px) {
     main { flex-direction: column; }
-    #sidebar { width: 100%; min-width: unset; max-height: 40vh; border-right: none; border-bottom: 1px solid var(--sidebar-border); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    #sidebar .font-bar { padding: 6px 12px; }
-    #sidebar .sidebar-results { -webkit-overflow-scrolling: touch; }
+    #sidebar { width: 100%; min-width: unset; height: 40vh; border-right: none; border-bottom: 1px solid var(--sidebar-border); box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow-y: auto; }
+    #sidebar .font-bar { padding: 6px 12px; flex-shrink: 0; }
+    #sidebar .sidebar-results { flex: 0 1 auto; overflow-y: visible; }
+    #sidebar .recent-section, #sidebar .letter-bar { flex-shrink: 0; }
     #entry-view { padding: 16px; }
     #entry-view .entry-card { padding: 18px; }
     #entry-view .entry-header .griego { font-size: 22px; }
@@ -165,7 +166,7 @@ main { display: flex; flex: 1; overflow: hidden; }
     #verseRef { font-size: 12px; flex: 0 1 auto; }
     #termCount { font-size: 11px; }
     #darkToggle { font-size: 13px; padding: 4px 9px; }
-    #sidebar { max-height: 25vh; }
+    #sidebar { height: 35vh; }
     #sidebar .match { padding: 10px 12px; }
     #sidebar .match .griego { font-size: 15px; }
     #sidebar .match .espanol { font-size: 13px; }
