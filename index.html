@@ -403,10 +403,10 @@ function onSearch() {
         currentMatch = null;
         return;
     }
+    const isGr = searchLang === 'GR';
     addRecent(isGr ? applyGreekTranslit(q) : q);
     document.querySelectorAll('.letter-bar .l').forEach(l => l.classList.remove('active'));
     const matches = [];
-    const isGr = searchLang === 'GR';
     const queries = isGr ? [q, applyGreekTranslit(q)] : [q];
     for (let i = 0; i < entries.length; i++) {
         const e = entries[i];
