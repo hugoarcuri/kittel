@@ -427,19 +427,27 @@ function changeFont(delta) {
 }
 
 const letterIndex = {};
+function normGreek(c) {
+    const base = c.normalize('NFD')[0];
+    return base.toUpperCase();
+}
 function buildLetterIndex() {
+    const byLetter = {};
     for (let i = 0; i < entries.length; i++) {
         const greek = entries[i].g.replace(/\[.*$/, '').split(',')[0].trim();
         if (!greek) continue;
-        const c = greek.charAt(0);
-        if (!letterIndex[c]) letterIndex[c] = [];
-        letterIndex[c].push(i);
+        const c = normGreek(greek.charAt(0));
+        if (!byLetter[c]) byLetter[c] = [];
+        byLetter[c].push(i);
+    }
+    for (const c of Object.keys(byLetter)) {
+        letterIndex[c] = byLetter[c];
     }
     const bar = document.getElementById('letterBar');
     let html = '';
     for (const c of 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ') {
-        if (letterIndex[c]) {
-            html += `<span class="l" data-l="${escHtml(c)}">${escHtml(c)}<span class="cnt">${letterIndex[c].length}</span></span>`;
+        if (byLetter[c]) {
+            html += `<span class="l" data-l="${escHtml(c)}">${escHtml(c)}<span class="cnt">${byLetter[c].length}</span></span>`;
         } else {
             html += `<span class="l" style="opacity:0.2;cursor:default">${escHtml(c)}</span>`;
         }
