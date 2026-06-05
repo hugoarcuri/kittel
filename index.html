@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kittel — Diccionario Teológico del NT</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f8f9fa; color: #1a1a1a; height: 100vh; display: flex; flex-direction: column; }
+
+header { background: #2c3e50; color: #fff; padding: 12px 20px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+header h1 { font-size: 18px; font-weight: 600; white-space: nowrap; }
+header input { flex: 1; max-width: 500px; padding: 8px 14px; border: none; border-radius: 6px; font-size: 15px; outline: none; background: #fff; }
+header input:focus { box-shadow: 0 0 0 2px #5dade2; }
+#status { font-size: 13px; color: #aab; white-space: nowrap; }
+
+main { display: flex; flex: 1; overflow: hidden; }
+
+#sidebar { width: 340px; min-width: 340px; background: #fff; border-right: 1px solid #dee2e6; overflow-y: auto; }
+#sidebar .match { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.15s; }
+#sidebar .match:hover { background: #eaf2f8; }
+#sidebar .match.active { background: #d4e6f1; border-left: 3px solid #2c3e50; }
+#sidebar .match .griego { font-size: 16px; font-weight: 600; color: #2c3e50; }
+#sidebar .match .espanol { font-size: 13px; color: #555; margin-top: 2px; }
+#sidebar .match .preview { font-size: 12px; color: #888; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#sidebar .no-results { padding: 30px 14px; text-align: center; color: #999; }
+
+#content { flex: 1; overflow-y: auto; padding: 0; }
+#entry-view { padding: 30px 36px; max-width: 800px; }
+#entry-view .entry-header { margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid #2c3e50; }
+#entry-view .entry-header .griego { font-size: 20px; font-weight: 700; color: #2c3e50; }
+#entry-view .entry-header .espanol { font-size: 15px; color: #555; margin-top: 4px; }
+#entry-view .entry-text { font-size: 14.5px; line-height: 1.7; color: #222; }
+#entry-view .entry-text p { margin-bottom: 10px; }
+#entry-view .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; color: #bbb; text-align: center; }
+#entry-view .empty-state h2 { font-size: 22px; margin-bottom: 8px; color: #ccc; }
+#entry-view .empty-state p { font-size: 14px; }
+
+.badge { display: inline-block; background: #eaf2f8; color: #2c3e50; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-right: 4px; }
+
+@media (max-width: 700px) {
+    main { flex-direction: column; }
+    #sidebar { width: 100%; min-width: unset; max-height: 40vh; border-right: none; border-bottom: 1px solid #dee2e6; }
+    #entry-view { padding: 16px 20px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Kittel</h1>
+    <input type="text" id="search" placeholder="Escribí una palabra en español…" autofocus>
+    <span id="status">Cargando…</span>
+</header>
+
+<main>
+    <div id="sidebar">
+        <div class="no-results">Escribí una palabra para buscar</div>
+    </div>
+    <div id="content">
+        <div id="entry-view">
+            <div class="empty-state">
+                <h2>Diccionario Teológico del NT</h2>
+                <p>Escribí una palabra en español para ver su entrada en el diccionario de Kittel</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+let entries = [];
+let currentMatch = null;
+
+const searchEl = document.getElementById('search');
+const sidebarEl = document.getElementById('sidebar');
+const entryViewEl = document.getElementById('entry-view');
+const statusEl = document.getElementById('status');
+
+function loadData() {
+    statusEl.textContent = 'Cargando datos…';
+    fetch('datos.json.gz')
+        .then(r => r.arrayBuffer())
+        .then(buf => {
+            const decompressed = pako.inflate(new Uint8Array(buf), { to: 'string' });
+            entries = JSON.parse(decompressed);
+            statusEl.textContent = `${entries.length} entradas · ${new Intl.NumberFormat().format(entries.reduce((a,e) => a + e.t.length, 0))} caracteres`;
+            searchEl.addEventListener('input', onSearch);
+            if (searchEl.value) onSearch();
+        })
+        .catch(err => {
+            statusEl.textContent = 'Error al cargar datos';
+            console.error(err);
+        });
+}
+
+function onSearch() {
+    const q = searchEl.value.toLowerCase().trim();
+    if (!q) {
+        sidebarEl.innerHTML = '<div class="no-results">Escribí una palabra para buscar</div>';
+        entryViewEl.innerHTML = `<div class="empty-state"><h2>Diccionario Teológico del NT</h2><p>Escribí una palabra en español para ver su entrada en el diccionario de Kittel</p></div>`;
+        currentMatch = null;
+        return;
+    }
+
+    const matches = [];
+    for (let i = 0; i < entries.length; i++) {
+        const e = entries[i];
+        for (let s of e.e) {
+            if (s.toLowerCase().includes(q)) {
+                matches.push({ idx: i, entry: e });
+                break;
+            }
+        }
+    }
+
+    renderSidebar(matches, q);
+    if (matches.length === 1) {
+        showEntry(matches[0].idx);
+    } else if (matches.length > 0 && currentMatch !== null) {
+        const stillThere = matches.some(m => m.idx === currentMatch);
+        if (!stillThere) {
+            currentMatch = null;
+            entryViewEl.innerHTML = `<div class="empty-state"><h2>${matches.length} resultados</h2><p>Seleccioná una entrada de la lista</p></div>`;
+        }
+    } else {
+        currentMatch = null;
+        entryViewEl.innerHTML = `<div class="empty-state"><h2>${matches.length === 0 ? 'Sin resultados' : matches.length + ' resultados'}</h2></div>`;
+    }
+}
+
+function renderSidebar(matches, q) {
+    if (matches.length === 0) {
+        sidebarEl.innerHTML = '<div class="no-results">Sin resultados</div>';
+        return;
+    }
+
+    let html = '';
+    for (let m of matches) {
+        const e = m.entry;
+        const active = m.idx === currentMatch ? ' active' : '';
+        const preview = e.t.slice(0, 80).replace(/\s+/g, ' ') + '…';
+        html += `<div class="match${active}" data-idx="${m.idx}">
+            <div class="griego">${escHtml(e.g)}</div>
+            <div class="espanol">${e.e.map(s => escHtml(s)).join(', ')}</div>
+            <div class="preview">${escHtml(preview)}</div>
+        </div>`;
+    }
+    sidebarEl.innerHTML = html;
+
+    sidebarEl.querySelectorAll('.match').forEach(el => {
+        el.addEventListener('click', () => {
+            const idx = parseInt(el.dataset.idx);
+            showEntry(idx);
+        });
+    });
+}
+
+function showEntry(idx) {
+    const e = entries[idx];
+    currentMatch = idx;
+    searchEl.value = searchEl.value;
+
+    sidebarEl.querySelectorAll('.match').forEach(el => {
+        el.classList.toggle('active', parseInt(el.dataset.idx) === idx);
+    });
+
+    const text = e.t
+        .replace(/\s+([A-Z]\.\s)/g, '<br><br>$1')
+        .replace(/\s+(\d+\.\s)/g, '<br><br>$1');
+
+    entryViewEl.innerHTML = `
+        <div class="entry-header">
+            <div class="griego">${escHtml(e.g)}</div>
+            <div class="espanol">${e.e.map(s => '<span class="badge">' + escHtml(s) + '</span>').join('')}</div>
+        </div>
+        <div class="entry-text">${text}</div>`;
+    entryViewEl.scrollTop = 0;
+}
+
+function escHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
+
+loadData();
+</script>
+</body>
+</html>
