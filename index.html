@@ -82,27 +82,6 @@ main { display: flex; flex: 1; overflow: hidden; }
 #sidebar .match .espanol { font-size: 14px; color: var(--text-muted); margin-top: 2px; }
 #sidebar .match .preview { font-size: 12px; color: var(--text-light); margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 #sidebar .no-results { padding: 40px 18px; text-align: center; color: var(--text-light); font-size: 15px; }
-#sidebar .view-tabs { display: flex; border-bottom: 1px solid var(--sidebar-border); flex-shrink: 0; }
-#sidebar .view-tabs button { flex: 1; padding: 8px; border: none; background: none; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-muted); transition: background 0.15s, color 0.15s; }
-#sidebar .view-tabs button:hover { background: var(--font-bar-bg); }
-#sidebar .view-tabs button.active { color: var(--griego-color); border-bottom: 2px solid var(--accent); }
-#sidebar .sidebar-index { flex: 1; overflow-y: auto; display: none; }
-#sidebar .sidebar-index::-webkit-scrollbar { width: 6px; }
-#sidebar .sidebar-index::-webkit-scrollbar-track { background: var(--scrollbar-track); }
-#sidebar .sidebar-index::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
-.idx-letter { border-bottom: 1px solid var(--sidebar-border); }
-.idx-header { display: flex; align-items: center; gap: 8px; padding: 7px 14px; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--griego-color); background: var(--font-bar-bg); transition: background 0.15s; user-select: none; }
-.idx-header:hover { background: var(--accent); color: #fff; }
-.idx-header .idx-count { font-weight: 400; font-size: 11px; color: var(--text-muted); margin-left: auto; }
-.idx-header:hover .idx-count { color: #fff; }
-.idx-header .idx-arrow { font-size: 10px; transition: transform 0.2s; }
-.idx-header.open .idx-arrow { transform: rotate(90deg); }
-.idx-words { display: none; }
-.idx-words.open { display: block; }
-.idx-word { display: flex; align-items: center; gap: 8px; padding: 5px 14px 5px 22px; cursor: pointer; font-size: 13px; transition: background 0.15s; }
-.idx-word:hover { background: var(--font-bar-bg); }
-.idx-word .idx-greek { color: var(--griego-color); font-weight: 600; }
-.idx-word .idx-trans { color: var(--text-muted); margin-left: auto; text-align: right; font-size: 12px; flex-shrink: 0; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 #content { flex: 1; overflow-y: auto; padding: 0; }
 #visitCounter { position: fixed; bottom: 8px; right: 10px; font-size: 12px; color: var(--text-light); background: var(--card-bg); padding: 5px 12px; border-radius: 8px; box-shadow: var(--shadow); z-index: 10; opacity: 0.75; user-select: none; transition: opacity 0.2s; }
@@ -198,14 +177,9 @@ main { display: flex; flex: 1; overflow: hidden; }
             <div class="recent-title">Búsquedas recientes</div>
             <div id="recentList"></div>
         </div>
-        <div class="view-tabs">
-            <button class="view-btn active" data-view="results">Buscar</button>
-            <button class="view-btn" data-view="index">Índice Α–Ω</button>
-        </div>
         <div class="sidebar-results">
             <div class="no-results">Escribí una palabra para buscar</div>
         </div>
-        <div class="sidebar-index" id="sidebarIndex"></div>
     </div>
     <div id="content">
         <div id="entry-view"></div>
@@ -293,85 +267,10 @@ function loadData() {
                 if (btn.id === 'fontDecr') btn.addEventListener('click', () => changeFont(-2));
             });
             darkToggle.addEventListener('click', toggleDark);
-            buildIndex();
-            renderIndex();
-            setupTabs();
         })
         .catch(() => {
             termCountEl.textContent = 'Error al cargar datos';
         });
-}
-
-let greekIndex = {};
-
-function buildIndex() {
-    greekIndex = {};
-    for (let i = 0; i < entries.length; i++) {
-        const e = entries[i];
-        const greek = e.g.replace(/\[.*$/, '').split(',')[0].trim();
-        if (!greek) continue;
-        const first = greek.charAt(0);
-        if (!greekIndex[first]) greekIndex[first] = [];
-        greekIndex[first].push({ idx: i, word: greek, trans: e.e[0] || '' });
-    }
-    for (const k in greekIndex) {
-        greekIndex[k].sort((a, b) => a.word < b.word ? -1 : 1);
-    }
-}
-
-function renderIndex() {
-    const letters = Object.keys(greekIndex).sort((a, b) => a < b ? -1 : 1);
-    let html = '';
-    for (const letter of letters) {
-        const words = greekIndex[letter];
-        html += `<div class="idx-letter">
-            <div class="idx-header" data-letter="${escHtml(letter)}">
-                <span class="idx-arrow">▶</span>
-                ${escHtml(letter)}
-                <span class="idx-count">${words.length}</span>
-            </div>
-            <div class="idx-words" id="idx-${escHtml(letter)}">
-                ${words.map(w => `<div class="idx-word" data-idx="${w.idx}">
-                    <span class="idx-greek">${escHtml(w.word)}</span>
-                    <span class="idx-trans">${escHtml(w.trans)}</span>
-                </div>`).join('')}
-            </div>
-        </div>`;
-    }
-    document.getElementById('sidebarIndex').innerHTML = html;
-    document.getElementById('sidebarIndex').addEventListener('click', e => {
-        const header = e.target.closest('.idx-header');
-        if (header) {
-            const wd = document.getElementById('idx-' + header.dataset.letter);
-            wd.classList.toggle('open');
-            header.classList.toggle('open');
-        }
-        const wordEl = e.target.closest('.idx-word');
-        if (wordEl) {
-            const idx = parseInt(wordEl.dataset.idx);
-            showEntry(idx);
-            searchEl.value = entries[idx].e[0] || '';
-            onSearch();
-            document.querySelector('.view-btn[data-view="results"]')?.click();
-        }
-    });
-}
-
-function setupTabs() {
-    document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const view = btn.dataset.view;
-            if (view === 'results') {
-                sidebarResults.style.display = '';
-                document.getElementById('sidebarIndex').style.display = 'none';
-            } else {
-                sidebarResults.style.display = 'none';
-                document.getElementById('sidebarIndex').style.display = '';
-            }
-        });
-    });
 }
 
 function showWelcome() {
