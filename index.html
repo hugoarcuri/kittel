@@ -94,7 +94,7 @@ main { display: flex; flex: 1; overflow: hidden; }
 #sidebar .match .preview { font-size: 12px; color: var(--text-light); margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 #sidebar .no-results { padding: 40px 18px; text-align: center; color: var(--text-light); font-size: 15px; }
 #sidebar .letter-bar { display: flex; flex-wrap: wrap; gap: 1px; padding: 5px 10px; border-bottom: 1px solid var(--sidebar-border); background: var(--sidebar-bg); flex-shrink: 0; }
-#sidebar .letter-bar .l { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 24px; font-size: 12px; font-weight: 600; cursor: pointer; border-radius: 4px; color: var(--text-muted); transition: background 0.12s, color 0.12s; user-select: none; }
+#sidebar .letter-bar .l { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; font-size: 15px; font-weight: 600; cursor: pointer; border-radius: 4px; color: var(--text-muted); transition: background 0.12s, color 0.12s; user-select: none; }
 #sidebar .letter-bar .l:hover { background: var(--accent); color: #fff; }
 #sidebar .letter-bar .l.active { background: var(--accent); color: #fff; }
 #sidebar .letter-bar .l .cnt { font-size: 8px; font-weight: 400; margin-left: 1px; opacity: 0.6; }
@@ -565,9 +565,10 @@ function buildLetterIndex() {
     }
     const bar = document.getElementById('letterBar');
     let html = '';
-    for (const c of 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ') {
-        if (byLetter[c]) {
-            html += `<span class="l" data-l="${escHtml(c)}">${escHtml(c)}<span class="cnt">${byLetter[c].length}</span></span>`;
+    for (const c of 'αβγδεζηθικλμνξοπρστυφχψω') {
+        const upper = c.toUpperCase();
+        if (byLetter[upper]) {
+            html += `<span class="l" data-l="${escHtml(upper)}">${escHtml(c)}<span class="cnt">${byLetter[upper].length}</span></span>`;
         } else {
             html += `<span class="l" style="opacity:0.2;cursor:default">${escHtml(c)}</span>`;
         }
