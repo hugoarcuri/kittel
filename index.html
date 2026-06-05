@@ -75,7 +75,9 @@ main { display: flex; flex: 1; overflow: hidden; }
 #sidebar .font-bar .font-btn:hover { background: var(--accent-dark); }
 #sidebar .font-bar #fontSizeLabel { font-size: 13px; color: var(--text-muted); min-width: 20px; text-align: center; font-weight: 600; }
 #sidebar .recent-section { padding: 8px 14px; border-bottom: 1px solid var(--sidebar-border); flex-shrink: 0; }
-#sidebar .recent-section .recent-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-light); margin-bottom: 6px; }
+#sidebar .recent-section .recent-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-light); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+#sidebar .recent-section .recent-title .clear-recent { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 12px; padding: 0 2px; line-height: 1; opacity: 0.5; transition: opacity 0.15s; }
+#sidebar .recent-section .recent-title .clear-recent:hover { opacity: 1; }
 #sidebar .recent-section .recent-item { font-size: 13px; padding: 4px 8px; border-radius: 4px; cursor: pointer; color: var(--text-muted); display: inline-block; margin: 2px 3px 2px 0; background: var(--font-bar-bg); transition: background 0.15s; }
 #sidebar .recent-section .recent-item:hover { background: var(--accent); color: #fff; }
 #sidebar .sidebar-results { flex: 1; overflow-y: auto; }
@@ -148,7 +150,11 @@ main { display: flex; flex: 1; overflow: hidden; }
     .welcome .quick-card { padding: 10px 18px; font-size: 14px; }
 }
 @media (max-width: 480px) {
-    header { padding: 10px 12px; gap: 8px; }
+    header { padding: 10px 12px; gap: 8px; justify-content: center; }
+    header .logo { height: 50px; }
+    header h1 { font-size: 17px; }
+    header input { padding: 10px 14px; font-size: 15px; min-width: 100px; flex: 1 1 100%; order: 3; }
+    #verseRef { font-size: 12px; flex: 0 1 auto; }
     header .logo { height: 50px; }
     header h1 { font-size: 17px; }
     header input { padding: 10px 14px; font-size: 15px; min-width: 100px; }
@@ -192,7 +198,7 @@ main { display: flex; flex: 1; overflow: hidden; }
             <button class="font-btn" id="fontIncr" title="Aumentar fuente">A+</button>
         </div>
         <div class="recent-section" id="recentSection">
-            <div class="recent-title">Búsquedas recientes</div>
+            <div class="recent-title">Búsquedas recientes <button class="clear-recent" id="clearRecent" title="Limpiar historial">✕</button></div>
             <div id="recentList"></div>
         </div>
         <div class="letter-bar" id="letterBar"></div>
@@ -216,6 +222,35 @@ let isDark = localStorage.getItem('kittelDark') === 'true';
 let searchLang = 'ES';
 const RECENT_KEY = 'kittelRecent';
 const FAV_KEY = 'kittelFav';
+
+const GREEK_MAP = {
+    'a':'α','b':'β','g':'γ','d':'δ','e':'ε','z':'ζ','h':'η','i':'ι','k':'κ',
+    'l':'λ','m':'μ','n':'ν','x':'ξ','o':'ο','p':'π','r':'ρ','s':'σ','t':'τ',
+    'y':'υ','f':'φ','j':'θ','c':'χ','u':'υ','w':'ω','v':'β',
+    'A':'Α','B':'Β','G':'Γ','D':'Δ','E':'Ε','Z':'Ζ','H':'Η','I':'Ι','K':'Κ',
+    'L':'Λ','M':'Μ','N':'Ν','X':'Ξ','O':'Ο','P':'Π','R':'Ρ','S':'Σ','T':'Τ',
+    'Y':'Υ','F':'Φ','J':'Θ','C':'Χ','U':'Υ','W':'Ω','V':'Β'
+};
+const GREEK_DIGRAPHS = { 'th':'θ','Th':'Θ','TH':'Θ','ph':'φ','Ph':'Φ','PH':'Φ','ch':'χ','Ch':'Χ','CH':'Χ','ps':'ψ','Ps':'Ψ','PS':'Ψ' };
+function applyGreekTranslit(text) {
+    if (searchLang !== 'GR') return text;
+    let skip = false, result = '';
+    for (let i = 0; i < text.length; i++) {
+        if (skip) { skip = false; continue; }
+        const digraph = text.slice(i, i+2);
+        if (GREEK_DIGRAPHS[digraph]) { result += GREEK_DIGRAPHS[digraph]; skip = true; continue; }
+        const ch = text[i];
+        if (GREEK_MAP[ch]) { result += GREEK_MAP[ch]; continue; }
+        result += ch;
+    }
+    const words = result.split(/(\s+)/);
+    for (let i = 0; i < words.length; i++) {
+        if (words[i].endsWith('σ') && /\S/.test(words[i])) {
+            words[i] = words[i].slice(0, -1) + 'ς';
+        }
+    }
+    return words.join('');
+}
 
 const searchEl = document.getElementById('search');
 const sidebarEl = document.getElementById('sidebar');
@@ -280,8 +315,41 @@ function loadData() {
             entries = JSON.parse(decompressed);
             const totalTerms = entries.reduce((a, e) => a + e.e.length, 0);
             termCountEl.textContent = `${totalTerms.toLocaleString()} términos cargados`;
-            searchEl.addEventListener('input', onSearch);
+let grRaw = '';
+            searchEl.addEventListener('beforeinput', (e) => {
+                if (searchLang !== 'GR') return;
+                if (e.inputType === 'insertText' && e.data && /^[\x00-\x7F]$/.test(e.data)) {
+                    grRaw += e.data;
+                    e.preventDefault();
+                    searchEl.value = applyGreekTranslit(grRaw);
+                    onSearch();
+                } else if (e.inputType === 'deleteContentBackward') {
+                    grRaw = grRaw.slice(0, -1);
+                    e.preventDefault();
+                    searchEl.value = applyGreekTranslit(grRaw);
+                    onSearch();
+                } else if (e.inputType === 'deleteContentForward') {
+                    grRaw = grRaw.slice(0, -1);
+                    e.preventDefault();
+                    searchEl.value = applyGreekTranslit(grRaw);
+                    onSearch();
+                } else if (e.inputType === 'insertFromPaste') {
+                    e.preventDefault();
+                    const pasted = e.dataTransfer?.getData('text/plain') || '';
+                    grRaw += pasted;
+                    searchEl.value = applyGreekTranslit(grRaw);
+                    onSearch();
+                } else if (e.inputType === 'insertCompositionText') {
+                }
+            });
+            searchEl.addEventListener('input', () => {
+                if (searchLang !== 'GR') { onSearch(); }
+            });
             renderRecent();
+            document.getElementById('clearRecent').addEventListener('click', () => {
+                localStorage.removeItem(RECENT_KEY);
+                renderRecent();
+            });
             buildLetterIndex();
             if (searchEl.value) onSearch(); else showWelcome();
             document.querySelectorAll('.font-btn').forEach(btn => {
@@ -296,6 +364,7 @@ function loadData() {
                     langBtns.forEach(b => b.classList.toggle('active', b === btn));
                     searchEl.classList.toggle('gr', searchLang === 'GR');
                     searchEl.placeholder = searchLang === 'ES' ? 'Escribí una palabra en español…' : 'Escribí una palabra en griego…';
+                    grRaw = '';
                     searchEl.value = '';
                     searchEl.focus();
                     onSearch();
