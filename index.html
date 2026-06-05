@@ -44,12 +44,13 @@
     --welcome-bg: #1C1410;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; transition: background 0.2s, color 0.2s; }
+body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", system-ui, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; transition: background 0.2s, color 0.2s; }
 
 header { background: var(--header-bg); color: #fff; padding: 10px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; flex-wrap: wrap; }
 header .logo { height: 66px; width: auto; flex-shrink: 0; }
 header h1 { font-size: 22px; font-weight: 700; white-space: nowrap; }
-header input { flex: 0 1 320px; min-width: 140px; padding: 11px 18px; border: none; border-radius: 8px; font-size: 16px; outline: none; background: #fff; }
+header input { flex: 0 1 320px; min-width: 140px; padding: 10px 16px; border: none; border-radius: 10px; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; font-weight: 400; letter-spacing: -0.2px; outline: none; background: #fff; }
+header input::placeholder { color: #999; font-weight: 400; opacity: 0.7; }
 header input:focus { box-shadow: 0 0 0 3px var(--accent); }
 .header-right { display: flex; align-items: center; gap: 14px; margin-left: auto; }
 #termCount { font-size: 13px; color: rgba(255,255,255,0.7); white-space: nowrap; }
