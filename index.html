@@ -51,12 +51,13 @@ header .logo { height: 66px; width: auto; flex-shrink: 0; }
 header h1 { font-size: 22px; font-weight: 700; white-space: nowrap; }
 header input { flex: 0 1 320px; min-width: 140px; padding: 10px 16px; border: none; border-radius: 10px; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; font-weight: 400; letter-spacing: -0.2px; outline: none; background: #fff; }
 header input::placeholder { color: #999; font-weight: 400; opacity: 0.7; }
-#verseRef { font-size: 12px; color: rgba(255,255,255,0.55); white-space: nowrap; font-style: italic; margin-right: auto; }
-#langToggle { background: none; border: 1px solid rgba(255,255,255,0.25); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 6px; cursor: pointer; line-height: 1; transition: background 0.15s, background 0.15s; letter-spacing: 0.3px; }
-#langToggle:hover { background: rgba(255,255,255,0.1); }
-#langToggle.gr { background: var(--accent); border-color: var(--accent); color: #1C1814; }
+#verseRef { font-size: 14px; color: rgba(255,255,255,0.5); font-style: italic; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lang-switch { display: inline-flex; border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+.lang-switch button { background: none; border: none; color: rgba(255,255,255,0.45); font-size: 12px; font-weight: 700; padding: 5px 13px; cursor: pointer; transition: background 0.15s, color 0.15s; line-height: 1.2; }
+.lang-switch button:hover { background: rgba(255,255,255,0.08); }
+.lang-switch button.active { background: var(--accent); color: #1C1814; }
 #search.gr { font-family: "Gentium Plus", "Noto Serif", "SBL Greek", "Galatia SIL", "Palatino Linotype", serif; font-size: 17px; }
-#verseBar { background: var(--header-bg); border-top: 1px solid rgba(255,255,255,0.06); padding: 5px 20px; font-size: 11px; color: rgba(255,255,255,0.4); text-align: center; font-style: italic; flex-shrink: 0; line-height: 1.4; }
+
 header input:focus { box-shadow: 0 0 0 3px var(--accent); }
 .header-right { display: flex; align-items: center; gap: 14px; margin-left: auto; }
 #termCount { font-size: 13px; color: rgba(255,255,255,0.7); white-space: nowrap; }
@@ -172,15 +173,16 @@ main { display: flex; flex: 1; overflow: hidden; }
     <img class="logo" src="logo.png" alt="HAEDO">
     <h1>Kittel</h1>
     <input type="text" id="search" placeholder="Escribí una palabra en español…" autofocus>
-    <button id="langToggle" title="Español / Griego">ES</button>
-    <span id="verseRef">2 Ti 2:15</span>
+    <div class="lang-switch" id="langSwitch">
+        <button class="active" data-lang="ES">ES</button>
+        <button data-lang="GR">GR</button>
+    </div>
+    <span id="verseRef" title="2 Timoteo 2:15 RV60">Procura con diligencia presentarte a Dios aprobado, como obrero que no tiene de qué avergonzarse, que usa bien la palabra de verdad. — 2 Ti 2:15</span>
     <div class="header-right">
         <span id="termCount"></span>
         <button id="darkToggle" title="Modo oscuro">🌙</button>
     </div>
 </header>
-<div id="verseBar">Procurad con diligencia presentaros a Dios aprobados, como obreros que no tienen de qué avergonzarse, que usan bien la palabra de verdad. — 2 Timoteo 2:15</div>
-
 <main>
     <div id="sidebar">
         <div class="font-bar">
@@ -287,16 +289,17 @@ function loadData() {
                 if (btn.id === 'fontDecr') btn.addEventListener('click', () => changeFont(-2));
             });
             darkToggle.addEventListener('click', toggleDark);
-            const langBtn = document.getElementById('langToggle');
-            langBtn.addEventListener('click', () => {
-                searchLang = searchLang === 'ES' ? 'GR' : 'ES';
-                langBtn.textContent = searchLang;
-                langBtn.classList.toggle('gr', searchLang === 'GR');
-                searchEl.classList.toggle('gr', searchLang === 'GR');
-                searchEl.placeholder = searchLang === 'ES' ? 'Escribí una palabra en español…' : 'Escribí una palabra en griego…';
-                searchEl.value = '';
-                searchEl.focus();
-                onSearch();
+            const langBtns = document.querySelectorAll('#langSwitch button');
+            langBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    searchLang = btn.dataset.lang;
+                    langBtns.forEach(b => b.classList.toggle('active', b === btn));
+                    searchEl.classList.toggle('gr', searchLang === 'GR');
+                    searchEl.placeholder = searchLang === 'ES' ? 'Escribí una palabra en español…' : 'Escribí una palabra en griego…';
+                    searchEl.value = '';
+                    searchEl.focus();
+                    onSearch();
+                });
             });
             const resizeHandle = document.getElementById('sidebarResize');
             let resizeActive = false;
