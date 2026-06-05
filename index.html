@@ -346,7 +346,7 @@ function showEntry(idx) {
     entryViewEl.innerHTML = `
         <div class="entry-card">
             <div class="entry-header">
-                <div class="griego">${escHtml(e.g)}</div>
+            <div class="griego">${escHtml(e.g.replace(/\[.*?\]/g,'').replace(/, ,/g,',').replace(/,\s*$/, '').replace(/\s+,/g,',').trim())}</div>
                 <div class="espanol">${e.e.map(s => '<span class="badge">' + escHtml(s) + '</span>').join('')}</div>
                 <div class="header-meta">
                     <span class="page-badge">Kittel pág. ${e.p || '—'}</span>
