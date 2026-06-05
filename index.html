@@ -471,7 +471,7 @@ function renderSidebar(matches) {
         const active = m.idx === currentMatch ? ' active' : '';
         const preview = e.t.slice(0, 150).replace(/\s+/g, ' ') + '…';
         html += `<div class="match${active}" data-idx="${m.idx}">
-            <div class="griego">${escHtml(e.g.replace(/\[.*$/,'').split(',')[0].trim())}</div>
+            <div class="griego">${escHtml(e.g.replace(/\[.*?\]/g,'').replace(/\s*,\s*/g,', ').replace(/, ,/g,',').replace(/^,|,$/g,'').trim())}</div>
             <div class="espanol">${e.e.map(s => escHtml(s)).join(', ')}</div>
             <div class="preview">${(e.g + ' ' + e.t).replace(/\[[^\]]*$/, '').replace(/, ,/g, ', ').replace(/\s+/g, ' ').slice(0, 150)}…</div>
         </div>`;
@@ -501,7 +501,7 @@ function showEntry(idx) {
     entryViewEl.innerHTML = `
         <div class="entry-card">
             <div class="entry-header">
-            <div class="griego">${escHtml(e.g.replace(/\[.*$/,'').split(',')[0].trim())}</div>
+            <div class="griego">${escHtml(e.g.replace(/\[.*?\]/g,'').replace(/\s*,\s*/g,', ').replace(/, ,/g,',').replace(/^,|,$/g,'').trim())}</div>
                 <div class="espanol">${e.e.map(s => '<span class="badge">' + escHtml(s) + '</span>').join('')}</div>
                 <div class="header-meta">
                     <span class="page-badge">Kittel pág. ${e.p || '—'}</span>
