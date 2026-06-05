@@ -251,6 +251,9 @@ function applyGreekTranslit(text) {
     }
     return words.join('');
 }
+function stripGreekAccents(s) {
+    return s.normalize('NFD').replace(/[\u0300-\u036F]/g, '');
+}
 
 const searchEl = document.getElementById('search');
 const sidebarEl = document.getElementById('sidebar');
@@ -428,10 +431,12 @@ function onSearch() {
     const isGr = searchLang === 'GR';
     for (let i = 0; i < entries.length; i++) {
         const e = entries[i];
-        const field = isGr ? e.g : e.e;
         const items = isGr ? [e.g] : e.e;
+        const matchStr = isGr ? stripGreekAccents(e.g.toLowerCase()) : e.e.join(' ').toLowerCase();
+        const searchStr = isGr ? stripGreekAccents(q) : q;
         for (let s of items) {
-            if (s.toLowerCase().includes(q)) {
+            const testStr = isGr ? stripGreekAccents(s.toLowerCase()) : s.toLowerCase();
+            if (testStr.includes(searchStr)) {
                 matches.push({ idx: i, entry: e });
                 break;
             }
