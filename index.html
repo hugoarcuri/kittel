@@ -294,6 +294,7 @@ function renderRecent() {
     recentListEl.querySelectorAll('.recent-item').forEach(el => {
         el.addEventListener('click', () => {
             searchEl.value = el.dataset.q;
+            grRaw = '';
             onSearch();
         });
     });
@@ -338,9 +339,15 @@ let grRaw = '';
                     onSearch();
                 } else if (e.inputType === 'insertFromPaste') {
                     e.preventDefault();
-                    const pasted = e.dataTransfer?.getData('text/plain') || '';
-                    grRaw += pasted;
-                    searchEl.value = applyGreekTranslit(grRaw);
+                    const pasted = e.data || '';
+                    const latin = pasted.split('').filter(c => /^[\x00-\x7F]$/.test(c)).join('');
+                    if (latin.length === pasted.length) {
+                        grRaw += latin;
+                        searchEl.value = applyGreekTranslit(grRaw);
+                    } else {
+                        searchEl.value = pasted;
+                        grRaw = '';
+                    }
                     onSearch();
                 } else if (e.inputType === 'insertCompositionText') {
                 }
@@ -412,6 +419,7 @@ function showWelcome() {
     entryViewEl.querySelectorAll('.quick-card').forEach(el => {
         el.addEventListener('click', () => {
             searchEl.value = el.dataset.w;
+            grRaw = '';
             onSearch();
         });
     });
