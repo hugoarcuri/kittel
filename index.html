@@ -52,6 +52,11 @@ header h1 { font-size: 22px; font-weight: 700; white-space: nowrap; }
 header input { flex: 0 1 320px; min-width: 140px; padding: 10px 16px; border: none; border-radius: 10px; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; font-weight: 400; letter-spacing: -0.2px; outline: none; background: #fff; }
 header input::placeholder { color: #999; font-weight: 400; opacity: 0.7; }
 #verseRef { font-size: 12px; color: rgba(255,255,255,0.55); white-space: nowrap; font-style: italic; margin-right: auto; }
+#langToggle { background: none; border: 1px solid rgba(255,255,255,0.25); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 6px; cursor: pointer; line-height: 1; transition: background 0.15s, background 0.15s; letter-spacing: 0.3px; }
+#langToggle:hover { background: rgba(255,255,255,0.1); }
+#langToggle.gr { background: var(--accent); border-color: var(--accent); color: #1C1814; }
+#search.gr { font-family: "Gentium Plus", "Noto Serif", "SBL Greek", "Galatia SIL", "Palatino Linotype", serif; font-size: 17px; }
+#verseBar { background: var(--header-bg); border-top: 1px solid rgba(255,255,255,0.06); padding: 5px 20px; font-size: 11px; color: rgba(255,255,255,0.4); text-align: center; font-style: italic; flex-shrink: 0; line-height: 1.4; }
 header input:focus { box-shadow: 0 0 0 3px var(--accent); }
 .header-right { display: flex; align-items: center; gap: 14px; margin-left: auto; }
 #termCount { font-size: 13px; color: rgba(255,255,255,0.7); white-space: nowrap; }
@@ -60,7 +65,9 @@ header input:focus { box-shadow: 0 0 0 3px var(--accent); }
 
 main { display: flex; flex: 1; overflow: hidden; }
 
-#sidebar { width: 380px; min-width: 380px; background: var(--sidebar-bg); border-right: 1px solid var(--sidebar-border); display: flex; flex-direction: column; overflow: hidden; transition: background 0.2s; }
+#sidebar { width: 380px; min-width: 200px; background: var(--sidebar-bg); border-right: 1px solid var(--sidebar-border); display: flex; flex-direction: column; overflow: hidden; transition: background 0.2s; }
+#sidebarResize { width: 5px; cursor: col-resize; flex-shrink: 0; background: transparent; transition: background 0.15s; position: relative; z-index: 5; }
+#sidebarResize:hover, #sidebarResize.active { background: var(--accent); }
 #sidebar .font-bar { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-bottom: 1px solid var(--sidebar-border); background: var(--font-bar-bg); flex-shrink: 0; transition: background 0.2s; }
 #sidebar .font-bar label { font-size: 12px; color: var(--text-muted); margin-right: 2px; font-weight: 500; }
 #sidebar .font-bar .font-btn { background: var(--accent); border: none; font-size: 15px; font-weight: 700; padding: 5px 12px; border-radius: 6px; cursor: pointer; line-height: 1.3; color: #fff; transition: background 0.15s; }
@@ -165,12 +172,14 @@ main { display: flex; flex: 1; overflow: hidden; }
     <img class="logo" src="logo.png" alt="HAEDO">
     <h1>Kittel</h1>
     <input type="text" id="search" placeholder="Escribí una palabra en español…" autofocus>
+    <button id="langToggle" title="Español / Griego">ES</button>
     <span id="verseRef">2 Ti 2:15</span>
     <div class="header-right">
         <span id="termCount"></span>
         <button id="darkToggle" title="Modo oscuro">🌙</button>
     </div>
 </header>
+<div id="verseBar">Procurad con diligencia presentaros a Dios aprobados, como obreros que no tienen de qué avergonzarse, que usan bien la palabra de verdad. — 2 Timoteo 2:15</div>
 
 <main>
     <div id="sidebar">
@@ -189,6 +198,7 @@ main { display: flex; flex: 1; overflow: hidden; }
             <div class="no-results">Escribí una palabra para buscar</div>
         </div>
     </div>
+    <div id="sidebarResize"></div>
     <div id="content">
         <div id="entry-view"></div>
     </div>
@@ -201,6 +211,7 @@ let entries = [];
 let currentMatch = null;
 let fontSize = parseInt(localStorage.getItem('kittelFontSize')) || 18;
 let isDark = localStorage.getItem('kittelDark') === 'true';
+let searchLang = 'ES';
 const RECENT_KEY = 'kittelRecent';
 const FAV_KEY = 'kittelFav';
 
@@ -276,6 +287,40 @@ function loadData() {
                 if (btn.id === 'fontDecr') btn.addEventListener('click', () => changeFont(-2));
             });
             darkToggle.addEventListener('click', toggleDark);
+            const langBtn = document.getElementById('langToggle');
+            langBtn.addEventListener('click', () => {
+                searchLang = searchLang === 'ES' ? 'GR' : 'ES';
+                langBtn.textContent = searchLang;
+                langBtn.classList.toggle('gr', searchLang === 'GR');
+                searchEl.classList.toggle('gr', searchLang === 'GR');
+                searchEl.placeholder = searchLang === 'ES' ? 'Escribí una palabra en español…' : 'Escribí una palabra en griego…';
+                searchEl.value = '';
+                searchEl.focus();
+                onSearch();
+            });
+            const resizeHandle = document.getElementById('sidebarResize');
+            let resizeActive = false;
+            resizeHandle.addEventListener('mousedown', e => {
+                e.preventDefault();
+                resizeActive = true;
+                resizeHandle.classList.add('active');
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+            });
+            document.addEventListener('mousemove', e => {
+                if (!resizeActive) return;
+                const w = Math.min(600, Math.max(200, e.clientX));
+                document.getElementById('sidebar').style.width = w + 'px';
+                document.getElementById('sidebar').style.minWidth = w + 'px';
+            });
+            document.addEventListener('mouseup', () => {
+                if (resizeActive) {
+                    resizeActive = false;
+                    resizeHandle.classList.remove('active');
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+                }
+            });
         })
         .catch(() => {
             termCountEl.textContent = 'Error al cargar datos';
@@ -300,7 +345,7 @@ function showWelcome() {
 function onSearch() {
     const q = searchEl.value.toLowerCase().trim();
     if (!q) {
-        sidebarResults.innerHTML = '<div class="no-results">Escribí una palabra para buscar</div>';
+        sidebarResults.innerHTML = '<div class="no-results">' + (searchLang === 'ES' ? 'Escribí una palabra para buscar' : 'Escribí una palabra en griego') + '</div>';
         showWelcome();
         currentMatch = null;
         return;
@@ -308,9 +353,12 @@ function onSearch() {
     addRecent(q);
     document.querySelectorAll('.letter-bar .l').forEach(l => l.classList.remove('active'));
     const matches = [];
+    const isGr = searchLang === 'GR';
     for (let i = 0; i < entries.length; i++) {
         const e = entries[i];
-        for (let s of e.e) {
+        const field = isGr ? e.g : e.e;
+        const items = isGr ? [e.g] : e.e;
+        for (let s of items) {
             if (s.toLowerCase().includes(q)) {
                 matches.push({ idx: i, entry: e });
                 break;
