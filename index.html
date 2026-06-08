@@ -130,6 +130,8 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 #entry-view .entry-text .section-title { font-size: 1.1em; font-weight: 700; }
 
 .badge { display: inline-block; background: var(--badge-bg); color: var(--accent-dark); font-size: 13px; padding: 3px 10px; border-radius: 12px; margin-right: 4px; font-weight: 500; }
+.badge-link { cursor: pointer; transition: background 0.15s, color 0.15s; }
+.badge-link:hover { background: var(--accent); color: #fff; }
 
 .welcome { background: var(--welcome-bg); min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; transition: background 0.2s; }
 .welcome h2 { font-size: 30px; font-weight: 700; color: var(--griego-color); margin-bottom: 4px; transition: color 0.2s; }
@@ -625,7 +627,7 @@ function showEntry(idx) {
         <div class="entry-card">
             <div class="entry-header">
             <div class="griego">${escHtml(cleanEntryGreek(e.g, e.t))}</div>
-                <div class="espanol">${e.e.map(s => '<span class="badge">' + escHtml(s) + '</span>').join('')}</div>
+                <div class="espanol">${e.e.map(s => '<span class="badge badge-link" data-w="' + escHtml(s) + '">' + escHtml(s) + '</span>').join('')}</div>
                 <div class="header-meta">
                     <span class="page-badge">Kittel pág. ${e.p || '—'}</span>
                     <button class="mobile-back">←</button>
@@ -659,6 +661,15 @@ function showEntry(idx) {
         document.getElementById('sidebar').classList.remove('sidebar-hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         searchEl.focus();
+    });
+    entryViewEl.querySelectorAll('.badge-link').forEach(el => {
+        el.addEventListener('click', () => {
+            searchEl.value = el.dataset.w;
+            grRaw = '';
+            document.getElementById('sidebar').classList.remove('sidebar-hidden');
+            onSearch();
+            if (window.innerWidth <= 700) window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
     });
 }
 
