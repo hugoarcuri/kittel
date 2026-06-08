@@ -50,8 +50,10 @@ body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display"
 header { background: var(--header-bg); color: #fff; padding: 10px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; flex-wrap: wrap; }
 header .logo { height: 78px; width: auto; flex-shrink: 0; }
 header h1 { font-size: 22px; font-weight: 700; white-space: nowrap; }
-header input { flex: 0 1 320px; min-width: 140px; padding: 10px 16px; border: none; border-radius: 10px; font-size: 16px; font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; font-weight: 400; letter-spacing: -0.2px; outline: none; background: #fff; }
+header input { flex: 1; min-width: 140px; padding: 10px 16px; border: none; border-radius: 10px; font-size: 16px; font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; font-weight: 400; letter-spacing: -0.2px; outline: none; background: #fff; }
 header input::placeholder { color: #999; font-weight: 400; opacity: 0.7; }
+.search-wrap { display: flex; align-items: center; gap: 6px; flex: 0 1 360px; min-width: 0; }
+.search-wrap input { flex: 1; min-width: 100px; }
 #verseRef { font-size: 14px; color: rgba(255,255,255,0.5); font-style: italic; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lang-switch { display: inline-flex; border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; overflow: hidden; flex-shrink: 0; }
 .lang-switch button { background: none; border: none; color: rgba(255,255,255,0.45); font-size: 12px; font-weight: 700; padding: 5px 13px; cursor: pointer; transition: background 0.15s, color 0.15s; line-height: 1.2; }
@@ -179,7 +181,6 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
     #entry-view { padding: 16px; padding-bottom: 56px; }
     #entry-view .entry-card { padding: 18px; }
     #entry-view .entry-header .griego { font-size: 22px; }
-    #entry-view .entry-text { font-size: 17px; }
     .welcome h2 { font-size: 24px; }
     .welcome .quick-card { padding: 10px 18px; font-size: 14px; }
 }
@@ -187,7 +188,8 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
     header { padding: 10px 12px; gap: 8px; justify-content: center; }
     header .logo { height: 58px; }
     header h1 { font-size: 17px; }
-    header input { padding: 10px 14px; font-size: 15px; min-width: 100px; flex: 1 1 100%; order: 3; }
+    .search-wrap { flex: 1 1 100%; order: 3; }
+    .search-wrap input { padding: 10px 14px; font-size: 15px; min-width: 50px; }
     #verseRef { font-size: 12px; flex: 0 1 auto; }
     #termCount { font-size: 11px; }
     #darkToggle { font-size: 13px; padding: 4px 9px; }
@@ -210,8 +212,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 <header>
     <img class="logo" src="logo.png" alt="HAEDO">
     <h1>Kittel</h1>
-    <input type="text" id="search" placeholder="Escribí una palabra en español…" autofocus>
-    <button id="indexToggle" class="index-btn" title="Índice de términos">☰</button>
+    <div class="search-wrap"><input type="text" id="search" placeholder="Escribí una palabra en español…" autofocus><button id="indexToggle" class="index-btn" title="Índice de términos">☰</button></div>
     <div class="lang-switch" id="langSwitch">
         <button class="active" data-lang="ES">ES</button>
         <button data-lang="GR">GR</button>
