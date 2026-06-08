@@ -124,7 +124,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 #entry-view .entry-header .header-meta .fav-btn:hover, #entry-view .entry-header .header-meta .copy-btn:hover, #entry-view .entry-header .header-meta .share-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 #entry-view .entry-header .header-meta .fav-btn.saved { background: var(--accent); color: #fff; border-color: var(--accent); }
 .mobile-back { display: none; }
-#entry-view .entry-text { font-size: 18px; line-height: 1.85; color: var(--text); transition: color 0.2s; }
+#entry-view .entry-text { font-size: 14px; line-height: 1.85; color: var(--text); transition: color 0.2s; }
 #entry-view .entry-text br { content: ""; display: block; margin-top: 14px; }
 #entry-view .entry-text .greek-word { font-size: 1.15em; font-weight: 700; }
 #entry-view .entry-text .section-title { font-size: 1.1em; font-weight: 700; }
@@ -229,7 +229,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
             <label>Tamaño de texto</label>
             <div class="font-group">
                 <button class="font-btn" id="fontDecr" title="Reducir fuente">A−</button>
-                <span id="fontSizeLabel">18</span>
+                <span id="fontSizeLabel">14</span>
                 <button class="font-btn" id="fontIncr" title="Aumentar fuente">A+</button>
             </div>
         </div>
@@ -261,7 +261,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 <script>
 let entries = [];
 let currentMatch = null;
-let fontSize = parseInt(localStorage.getItem('kittelFontSize')) || 18;
+let fontSize = parseInt(localStorage.getItem('kittelFontSize')) || 14;
 let isDark = localStorage.getItem('kittelDark') === 'true';
 let searchLang = 'ES';
 const RECENT_KEY = 'kittelRecent';
