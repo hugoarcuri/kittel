@@ -453,7 +453,7 @@ function onSearch() {
     const sq = stripGreekAccents(q);
     const searchRe = isGr
         ? new RegExp(sq.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-        : new RegExp('\\b' + sq.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
+        : new RegExp('(^|\\W)' + sq.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
     for (let i = 0; i < entries.length; i++) {
         const e = entries[i];
         const fields = [e.g, ...e.e];
