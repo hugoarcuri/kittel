@@ -117,6 +117,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 #entry-view .entry-card:hover { box-shadow: var(--shadow-lg); }
 #entry-view .entry-header { margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid var(--accent); }
 #entry-view .entry-header .griego { font-size: 28px; font-weight: 700; color: var(--griego-color); transition: color 0.2s; }
+#entry-view .entry-header .transliteracion { font-size: 15px; color: var(--text-light); font-style: italic; margin-top: 2px; }
 #entry-view .entry-header .espanol { font-size: 16px; color: var(--text-muted); margin-top: 4px; }
 #entry-view .entry-header .header-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
 #entry-view .entry-header .header-meta .page-badge { display: inline-block; background: var(--accent); color: #fff; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 10px; }
@@ -142,6 +143,8 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 
 .index-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 50; }
 .index-overlay.open { display: block; }
+
+.site-footer { background: var(--header-bg); color: rgba(255,255,255,0.5); text-align: center; padding: 12px 16px; font-size: 12px; flex-shrink: 0; }
 .index-panel { display: none; position: fixed; top: 0; right: 0; bottom: 0; width: 380px; max-width: 90vw; background: var(--card-bg); z-index: 51; flex-direction: column; box-shadow: -4px 0 20px rgba(0,0,0,0.12); transition: transform 0.25s ease; transform: translateX(100%); }
 .index-panel.open { display: flex; transform: translateX(0); }
 .index-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--sidebar-border); flex-shrink: 0; }
@@ -249,6 +252,10 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
     </div>
 </main>
 
+<footer class="site-footer">
+    <span>Kittel — Diccionario Teológico del Nuevo Testamento</span>
+</footer>
+
 <div id="visitCounter"></div>
 
 <div id="indexOverlay" class="index-overlay"></div>
@@ -310,6 +317,25 @@ function cleanEntryGreek(g, t) {
         }
     }
     return h;
+}
+function transliterateGreek(s) {
+    const map = {
+        'α':'a','ἀ':'a','ἁ':'a','ἂ':'a','ἃ':'a','ἄ':'a','ἅ':'a','ἆ':'a','ἇ':'a',
+        'β':'b','γ':'g','δ':'d',
+        'ε':'e','ἐ':'e','ἑ':'e','ἒ':'e','ἓ':'e','ἔ':'e','ἕ':'e',
+        'ζ':'z','η':'ē','ἠ':'ē','ἡ':'ē','ἢ':'ē','ἣ':'ē','ἤ':'ē','ἥ':'ē','ἦ':'ē','ἧ':'ē',
+        'θ':'th','ι':'i','ἰ':'i','ἱ':'i','ἲ':'i','ἳ':'i','ἴ':'i','ἵ':'i','ἶ':'i','ἷ':'i',
+        'κ':'k','λ':'l','μ':'m','ν':'n','ξ':'x','ο':'o',
+        'π':'p','ρ':'r','ῤ':'r','ῥ':'rh',
+        'σ':'s','ς':'s',
+        'τ':'t','υ':'y','ὑ':'y','ὒ':'y','ὓ':'y','ὔ':'y','ὕ':'y','ὖ':'y','ὗ':'y',
+        'φ':'ph','χ':'ch','ψ':'ps',
+        'ω':'ō','ὠ':'ō','ὡ':'ō','ὢ':'ō','ὣ':'ō','ὤ':'ō','ὥ':'ō','ὦ':'ō','ὧ':'ō',
+        'ῳ':'ō','ᾠ':'ō','ᾡ':'ō','ᾢ':'ō','ᾣ':'ō','ᾤ':'ō','ᾥ':'ō','ᾦ':'ō','ᾧ':'ō',
+        'ῃ':'ē','ᾐ':'ē','ᾑ':'ē','ᾒ':'ē','ᾓ':'ē','ᾔ':'ē','ᾕ':'ē','ᾖ':'ē','ᾗ':'ē',
+        'ᾳ':'a','ᾀ':'a','ᾁ':'a','ᾂ':'a','ᾃ':'a','ᾄ':'a','ᾅ':'a','ᾆ':'a','ᾇ':'a'
+    };
+    return s.normalize('NFKD').split('').map(c => map[c] || c).join('').replace(/\s+/g,' ').trim();
 }
 
 const searchEl = document.getElementById('search');
@@ -627,6 +653,7 @@ function showEntry(idx) {
         <div class="entry-card">
             <div class="entry-header">
             <div class="griego">${escHtml(cleanEntryGreek(e.g, e.t))}</div>
+                <div class="transliteracion">${escHtml(transliterateGreek(cleanEntryGreek(e.g, e.t)))}</div>
                 <div class="espanol">${e.e.map(s => '<span class="badge badge-link" data-w="' + escHtml(s) + '">' + escHtml(s) + '</span>').join('')}</div>
                 <div class="header-meta">
                     <span class="page-badge">Kittel pág. ${e.p || '—'}</span>
